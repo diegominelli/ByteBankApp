@@ -9,7 +9,7 @@ class BytebankApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       home: Scaffold(
         body: ListaTransferencias(),
       ),
@@ -106,7 +106,10 @@ class Editor extends StatelessWidget {
 }
 
 class ListaTransferencias extends StatelessWidget {
-  const ListaTransferencias({Key? key}) : super(key: key);
+  ListaTransferencias({Key? key}) : super(key: key);
+
+  // ignore: unused_field
+  final List<Transferencia> _transferencias = List.empty();
 
   @override
   Widget build(BuildContext context) {
@@ -114,11 +117,13 @@ class ListaTransferencias extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Transferências'),
       ),
-      body: Column(children: <Widget>[
-        ItemTransferencia(Transferencia(100.0, 1000)),
-        ItemTransferencia(Transferencia(200.0, 1001)),
-        ItemTransferencia(Transferencia(300.0, 1100)),
-      ]),
+      body: ListView.builder(
+        itemCount: _transferencias.length,
+        itemBuilder: (context, indice) {
+          final transferencia = _transferencias[indice];
+          return ItemTransferencia(transferencia);
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           final Future future =
@@ -128,6 +133,7 @@ class ListaTransferencias extends StatelessWidget {
           future.then((transferenciaRecebida) {
             debugPrint('chegou no then do print');
             debugPrint('$transferenciaRecebida');
+            _transferencias.add(transferenciaRecebida);
           });
         },
         child: const Icon(Icons.add),
