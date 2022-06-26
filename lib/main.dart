@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:flutter/material.dart';
 
 void main() => runApp(const BytebankApp());
@@ -7,9 +9,9 @@ class BytebankApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: Scaffold(
-        body: FormularioTransferencia(),
+        body: ListaTransferencias(),
       ),
     );
   }
@@ -46,22 +48,26 @@ class FormularioTransferencia extends StatelessWidget {
               icone: Icons.monetization_on,
             ),
             ElevatedButton(
+              // ignore: sort_child_properties_last
               child: const Text('Confirmar'),
               style: style,
-              onPressed: () => _criaTransferencia(
-                  _controladorCampoValor, _controladorCampoNumeroConta),
+              onPressed: () => _criaTransferencia(_controladorCampoValor,
+                  _controladorCampoNumeroConta, context),
             ),
           ],
         ));
   }
 }
 
-void _criaTransferencia(_controladorCampoValor, _controladorCampoNumeroConta) {
+void _criaTransferencia(_controladorCampoValor, _controladorCampoNumeroConta,
+    BuildContext context) {
   final int? numeroConta = int.tryParse(_controladorCampoNumeroConta.text);
   final double? valor = double.tryParse(_controladorCampoValor.text);
   if (numeroConta != null && valor != null) {
     final transferenciaCriada = Transferencia(valor, numeroConta);
+    debugPrint('Criando transferencia');
     debugPrint('$transferenciaCriada');
+    Navigator.pop(context, transferenciaCriada);
   }
 }
 
@@ -99,8 +105,8 @@ class Editor extends StatelessWidget {
   }
 }
 
-class ListaTransferencia extends StatelessWidget {
-  const ListaTransferencia({Key? key}) : super(key: key);
+class ListaTransferencias extends StatelessWidget {
+  const ListaTransferencias({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +120,16 @@ class ListaTransferencia extends StatelessWidget {
         ItemTransferencia(Transferencia(300.0, 1100)),
       ]),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          final Future future =
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return FormularioTransferencia();
+          }));
+          future.then((transferenciaRecebida) {
+            debugPrint('chegou no then do print');
+            debugPrint('$transferenciaRecebida');
+          });
+        },
         child: const Icon(Icons.add),
       ),
     );
