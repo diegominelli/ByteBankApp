@@ -10,19 +10,39 @@ class BytebankApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: ListaTransferencias(),
-      ),
-    );
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: Colors.green,
+          ).copyWith(
+            secondary: Colors.blueAccent[700],
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+            primary: Colors.blueAccent[700],
+          )),
+          buttonTheme: ButtonThemeData(
+              buttonColor: Colors.blueAccent[700],
+              textTheme: ButtonTextTheme.primary),
+        ),
+        home: Scaffold(
+          body: ListaTransferencias(),
+        ));
   }
 }
 
-class FormularioTransferencia extends StatelessWidget {
+class FormularioTransferencia extends StatefulWidget {
+  const FormularioTransferencia({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return FormularioTransferenciaState();
+  }
+}
+
+class FormularioTransferenciaState extends State<FormularioTransferencia> {
   final TextEditingController _controladorCampoNumeroConta =
       TextEditingController();
   final TextEditingController _controladorCampoValor = TextEditingController();
-
-  FormularioTransferencia({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +50,11 @@ class FormularioTransferencia extends StatelessWidget {
         ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Criando Transferência'),
-        ),
-        body: Column(
+      appBar: AppBar(
+        title: const Text('Criando Transferência'),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
           children: <Widget>[
             Editor(
               controlador: _controladorCampoNumeroConta,
@@ -55,19 +76,21 @@ class FormularioTransferencia extends StatelessWidget {
                   _controladorCampoNumeroConta, context),
             ),
           ],
-        ));
+        ),
+      ),
+    );
   }
-}
 
-void _criaTransferencia(_controladorCampoValor, _controladorCampoNumeroConta,
-    BuildContext context) {
-  final int? numeroConta = int.tryParse(_controladorCampoNumeroConta.text);
-  final double? valor = double.tryParse(_controladorCampoValor.text);
-  if (numeroConta != null && valor != null) {
-    final transferenciaCriada = Transferencia(valor, numeroConta);
-    debugPrint('Criando transferencia');
-    debugPrint('$transferenciaCriada');
-    Navigator.pop(context, transferenciaCriada);
+  void _criaTransferencia(_controladorCampoValor, _controladorCampoNumeroConta,
+      BuildContext context) {
+    final int? numeroConta = int.tryParse(_controladorCampoNumeroConta.text);
+    final double? valor = double.tryParse(_controladorCampoValor.text);
+    if (numeroConta != null && valor != null) {
+      final transferenciaCriada = Transferencia(valor, numeroConta);
+      debugPrint('Criando transferencia');
+      debugPrint('$transferenciaCriada');
+      Navigator.pop(context, transferenciaCriada);
+    }
   }
 }
 
@@ -105,12 +128,18 @@ class Editor extends StatelessWidget {
   }
 }
 
-class ListaTransferencias extends StatelessWidget {
+class ListaTransferencias extends StatefulWidget {
   ListaTransferencias({Key? key}) : super(key: key);
 
-  // ignore: unused_field
   final List<Transferencia> _transferencias = List.empty();
 
+  @override
+  State<StatefulWidget> createState() {
+    return ListaTransferenciasState();
+  }
+}
+
+class ListaTransferenciasState extends State<ListaTransferencias> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,22 +147,28 @@ class ListaTransferencias extends StatelessWidget {
         title: const Text('Transferências'),
       ),
       body: ListView.builder(
-        itemCount: _transferencias.length,
+        itemCount: widget._transferencias.length,
         itemBuilder: (context, indice) {
-          final transferencia = _transferencias[indice];
+          final transferencia = widget._transferencias[indice];
           return ItemTransferencia(transferencia);
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final Future future =
+          final Future<Transferencia?> future =
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return FormularioTransferencia();
+            return const FormularioTransferencia();
           }));
           future.then((transferenciaRecebida) {
-            debugPrint('chegou no then do print');
-            debugPrint('$transferenciaRecebida');
-            _transferencias.add(transferenciaRecebida);
+            Future.delayed(const Duration(seconds: 1), () {
+              debugPrint('chegou no then do future');
+              debugPrint('$transferenciaRecebida');
+              if (transferenciaRecebida != null) {
+                setState(() {
+                  widget._transferencias.add(transferenciaRecebida);
+                });
+              }
+            });
           });
         },
         child: const Icon(Icons.add),
